@@ -1,32 +1,25 @@
 
 from tqdm import tqdm
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, f1_score
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import TrainingArguments
 from transformers import Trainer
 from datasets import Dataset, DatasetDict
 import evaluate
 import numpy as np
+import sys
+sys.path.append('../')
+
 from utils.metrics import RestMexMetrics
+from utils.config import setConfig
+
+device = setConfig()
 metrics = RestMexMetrics()
-tqdm.pandas()
 
-# Set up the device
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-
-import torch
-device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-print(f"Using device: {device}")
-
-data = pd.read_csv(r'./dataset/train.csv')
+df = pd.read_csv(r'../data/train/train.csv')
+audf = pd.read_csv(r'../data/augmented/train.csv')
+data = pd.concat([df, audf], ignore_index=True)
 
 data['Title'] = data['Title'].astype(str)
 data['Review'] = data['Review'].astype(str)
@@ -101,4 +94,5 @@ trainer = Trainer(
 
 trainer.train()
 trainer.save_model("./")
+tokenizer.save_pretrained("./")
 trainer.evaluate()

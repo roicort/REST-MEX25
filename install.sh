@@ -13,14 +13,15 @@ if ! command -v pip &> /dev/null; then
 fi
 
 # Install requirements if requirements.txt exists
-if [ -f "requirements.txt" ]; then
-    echo "Installing requirements from requirements.txt..."
-    pip install -r requirements.txt || { echo "Failed to install requirements."; exit 1; }
+if [ -f "environment.yml" ]; then
+    echo "Installing dependencies in the base environment..."
+    conda env update -n base -f environment.yml || { echo "Failed to install requirements in the base environment."; exit 1; }
 else
-    echo "No requirements.txt found. Proceeding with PyTorch installation."
+    echo "environment.yml not found. Installing default dependencies in the base environment..."
 fi
 
 # Check the operating system
+echo "Installing Pip dependencies..."
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Detected macOS."
     echo "Installing PyTorch for macOS..."
@@ -58,7 +59,7 @@ else
     exit 1
 fi
 
-pip install transformers || { echo "Failed to install transformers."; exit 1; }
+pip install transformers datasets evaluate || { echo "Failed to install transformers."; exit 1; }
 python -m spacy download en_core_web_trf || { echo "Failed to download spaCy model en_core_web_trf."; exit 1; }
 python -m spacy download es_dep_news_trf || { echo "Failed to download spaCy model es_dep_news_trf."; exit 1; }
 python -c "from transformers import pipeline; print(pipeline('sentiment-analysis')('hugging face is the best'))" || { echo "Transformers test failed."; exit 1; }
