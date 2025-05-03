@@ -82,6 +82,7 @@ training_args = TrainingArguments(
     eval_strategy="epoch",
     save_strategy="no",
     push_to_hub=False,
+    per_device_train_batch_size=256,
 )
 
 trainer = Trainer(
