@@ -28,6 +28,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     pip install torch torchvision torchaudio || { echo "Failed to install PyTorch."; exit 1; }
     pip install -U pip setuptools wheel || { echo "Failed to update pip, setuptools, or wheel."; exit 1; }
     pip install -U 'spacy[apple]' || { echo "Failed to install spaCy for macOS."; exit 1; }
+    pip install transformers[torch] || { echo "Failed to install transformers."; exit 1; }
 
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "Detected Ubuntu/Linux."
@@ -47,6 +48,7 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 
         pip install -U pip setuptools wheel || { echo "Failed to update pip, setuptools, or wheel."; exit 1; }
         pip install -U 'spacy[cuda12x]' || { echo "Failed to install spaCy for CUDA."; exit 1; }
+        pip install transformers[torch] || { echo "Failed to install transformers."; exit 1; }
 
     else
         echo "CUDA not detected. Installing CPU version of PyTorch."
@@ -59,7 +61,7 @@ else
     exit 1
 fi
 
-pip install transformers datasets evaluate || { echo "Failed to install transformers."; exit 1; }
+pip install transformers datasets evaluate || { echo "Failed to install transformers dataset & evaluate"; exit 1; }
 python -m spacy download en_core_web_trf || { echo "Failed to download spaCy model en_core_web_trf."; exit 1; }
 python -m spacy download es_dep_news_trf || { echo "Failed to download spaCy model es_dep_news_trf."; exit 1; }
 python -c "from transformers import pipeline; print(pipeline('sentiment-analysis')('hugging face is the best'))" || { echo "Transformers test failed."; exit 1; }
