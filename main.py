@@ -391,7 +391,7 @@ def inference():
     Polarity_X_test = df['Title'] + df['Review']
 
     model = model.to(device)
-    Polarity_y_test_pred = predict_sentiment(Polarity_X_test.to_numpy(), model, tokenizer, batch_size=16)
+    Polarity_y_test_pred = predict_sentiment(Polarity_X_test.to_numpy(), model, tokenizer, device.type, batch_size=16)
     msg.good("Polarity predictions done")
 
     #### Type #######################################
