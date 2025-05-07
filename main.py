@@ -5,7 +5,7 @@ import spacy
 import joblib
 import pandas as pd
 
-from wasabi import msg
+from wasabi import Printer
 from radicli import Radicli
 
 from sklearn.model_selection import train_test_split
@@ -13,28 +13,29 @@ from sklearn.metrics import classification_report #, f1_score, accuracy_score
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification #, AutoModel
 
-sys.path.append('../')
+sys.path.append('./')
 from utils.config import setConfig
 from utils.metrics import RestMexMetrics
-from utils.run import predict_sentiment, TokenizeText #, IdentityTokenizer, embed_texts
+from utils.run import predict_sentiment, TokenizeText, IdentityTokenizer, embed_texts
 
 #### Global Configs ######################################
 
 device = setConfig()
 metrics = RestMexMetrics()
 cli = Radicli()
+msg = Printer()
 
 #### CLI Commands ##########################################
 
 @cli.command("eval_baseline")
 def eval_baseline():
     """
-    Evaluate the baseline ensamble.
+    Evaluate the baseline models.
     """
 
     #### Load Data #######################################
 
-    data = pd.read_csv(r'../data/train/train_augmented_tokenized.csv', encoding='utf-8')
+    data = pd.read_csv(r'./data/train/train_augmented_tokenized.csv', encoding='utf-8')
 
     data['Title'] = data['Title'].astype(str)
     data['Review'] = data['Review'].astype(str)
@@ -50,27 +51,35 @@ def eval_baseline():
 
     #### Load Models #######################################
     
-    best_type_model = joblib.load('./models/baseline/type_gridmodel.pkl').best_estimator_
-    best_town_model = joblib.load('./models/baseline/magictown_gridmodel.pkl').best_estimator_
-    best_polarity_model = joblib.load('./models/baseline/polarity_gridmodel.pkl').best_estimator_
+    with msg.loading("Loading models..."):
+        best_type_model = joblib.load('./models/baseline/type_gridmodel.pkl').best_estimator_
+        best_town_model = joblib.load('./models/baseline/magictown_gridmodel.pkl').best_estimator_
+        best_polarity_model = joblib.load('./models/baseline/polarity_gridmodel.pkl').best_estimator_
+    msg.good("Models loaded")
 
     #### Predict Type ######################################
 
     Type_X_test = test['Title_tokens'] + test['Review_tokens']
     Type_y_test = test['Type']
-    Type_y_test_pred = best_type_model.predict(Type_X_test)
+    with msg.loading("Predicting Type..."):
+        Type_y_test_pred = best_type_model.predict(Type_X_test)
+    msg.good("Type predictions done")
 
     #### Predict Town ######################################
 
-    Town_X_test = test['Region'].apply(lambda x: [str(x)]) + test['Title_tokens'] + test['Review_tokens']
+    Town_X_test = test['Title_tokens'] + test['Review_tokens']
     Town_y_test = test['Town']
-    Town_y_test_pred = best_town_model.predict(Town_X_test)
+    with msg.loading("Predicting Town..."):
+        Town_y_test_pred = best_town_model.predict(Town_X_test)
+    msg.good("Town predictions done")
 
     #### Predict Polarity ################################
 
     Polarity_X_test = test['Title_tokens'] + test['Review_tokens']
     Polarity_y_test = test['Polarity']
-    Polarity_y_test_pred = best_polarity_model.predict(Polarity_X_test)
+    with msg.loading("Predicting Polarity..."):
+        Polarity_y_test_pred = best_polarity_model.predict(Polarity_X_test)
+    msg.good("Polarity predictions done")
 
     #### Eval #############################################
 
@@ -92,20 +101,20 @@ def eval_baseline():
     f1 = polarity_report_md[Polarity_y_test.unique()].loc['f1-score'].to_dict()
     ResP_k = metrics.TypeScore(f1)
 
-    print(f"ResP_k: {ResP_k:.4f}")
-    print(f"ResMT_k: {ResMT_k:.4f}")
-    print(f"ResT_k: {ResT_k:.4f}")
+    msg.info(f"ResP_k: {ResP_k:.4f}")
+    msg.info(f"ResMT_k: {ResMT_k:.4f}")
+    msg.info(f"ResT_k: {ResT_k:.4f}")
 
     Sentiment_k = RestMexMetrics.RestMexScore(ResP_k, ResT_k, ResMT_k)
-    print(f"Sentiment(k): {Sentiment_k:.4f}")
+    msg.good(f"Sentiment(k): {Sentiment_k:.4f}")
 
     #### Save Results ###############################
 
     # Guardar el reporte en formato Markdown
     report_md = f"""
-    # Reporte de Métricas
+    # Eval Report
 
-    ## Métricas Calculadas
+    ## Scores
 
     - **ResP_k (Polarity Score):** {ResP_k:.4f}
     - **ResMT_k (Town Score):** {ResMT_k:.4f}
@@ -153,27 +162,27 @@ def eval_ensamble():
 
     #### Preprocess ###############################
 
+    msg.info("Preprocessing data...")
     nlp = spacy.load("es_dep_news_trf")
     test['Title_tokens'] = test['Title'].progress_apply(lambda x: TokenizeText(x, nlp))
     test['Review_tokens'] = test['Review'].progress_apply(lambda x: TokenizeText(x, nlp))
+    msg.good("Preprocessing done")
 
     #### Load Models ###############################
     
-    best_type_model = joblib.load('./models/baseline/type_gridmodel.pkl').best_estimator_
-    best_town_model = joblib.load('./models/baseline/magictown_gridmodel.pkl').best_estimator_
+    with msg.loading("Loading models..."):
+        best_type_model = joblib.load('./models/baseline/type_gridmodel.pkl').best_estimator_
+        best_town_model = joblib.load('./models/baseline/magictown_gridmodel.pkl').best_estimator_
 
-    path = './models/tabularisai-distilbert/'
-    model = AutoModelForSequenceClassification.from_pretrained(path) 
-    tokenizer = AutoTokenizer.from_pretrained(path)
+        path = './models/tabularisai-distilbert/'
+        model = AutoModelForSequenceClassification.from_pretrained(path) 
+        tokenizer = AutoTokenizer.from_pretrained(path)
+    msg.good("Models loaded")
 
     #### Predict Polarity ################################
 
     Polarity_X_test = test['Title'] + test['Review']
     Polarity_y_test = test['Polarity']
-
-    msg.info(f"Loaded model from {path}")
-
-    Polarity_y_test_pred = []
 
     model = model.to(device)
     Polarity_y_test_pred = predict_sentiment(Polarity_X_test.to_numpy(), model, tokenizer, batch_size=16)
@@ -184,13 +193,17 @@ def eval_ensamble():
 
     Type_X_test = test['Title_tokens'] + test['Review_tokens']
     Type_y_test = test['Type']
-    Type_y_test_pred = best_type_model.predict(Type_X_test)
+    with msg.loading("Predicting Type..."):
+        Type_y_test_pred = best_type_model.predict(Type_X_test)
+    msg.good("Type predictions done")
 
     #### Predict Town ######################################
 
-    Town_X_test = test['Region'].apply(lambda x: [str(x)]) + test['Title_tokens'] + test['Review_tokens']
+    Town_X_test = test['Title_tokens'] + test['Review_tokens']
     Town_y_test = test['Town']
-    Town_y_test_pred = best_town_model.predict(Town_X_test)
+    with msg.loading("Predicting Town..."):
+        Town_y_test_pred = best_town_model.predict(Town_X_test)
+    msg.good("Town predictions done")
 
     #### Eval #############################################
 
@@ -223,9 +236,9 @@ def eval_ensamble():
 
     # Guardar el reporte en formato Markdown
     report_md = f"""
-    # Reporte de Métricas
+    # Eval Report
 
-    ## Métricas Calculadas
+    ## Scores
 
     - **ResP_k (Polarity Score):** {ResP_k:.4f}
     - **ResMT_k (Town Score):** {ResMT_k:.4f}
@@ -253,37 +266,45 @@ def eval_ensamble():
 @cli.command("eval_embeddings")
 def eval_embeddings():
     """
-    Evaluate the final ensamble.
+    Evaluate the embeddings models.
     """
 
     #### Load Embeddings ###############################
 
-    data = joblib.load('../data/train/embeddings.pkl')
+    data = joblib.load('./data/train/embeddings.pkl')
     _, test = train_test_split(data, test_size=0.20, random_state=42)
 
     #### Load Models ###############################
 
-    best_type_model = joblib.load('./models/embeddings/type_gridmodel.pkl').best_estimator_
-    best_town_model = joblib.load('./models/embeddings/magictown_gridmodel.pkl').best_estimator_
-    best_polarity_model = joblib.load('./models/embeddings/polarity_gridmodel.pkl').best_estimator_
+    with msg.loading("Loading models..."):
+        best_type_model = joblib.load('./models/embeddings/type_gridmodel.pkl').best_estimator_
+        best_town_model = joblib.load('./models/embeddings/town_gridmodel.pkl').best_estimator_
+        best_polarity_model = joblib.load('./models/embeddings/polarity_gridmodel.pkl').best_estimator_
+    msg.good("Models loaded")
 
     #### Predict Polarity ################################
 
     Polarity_X_test = test['embedding'].tolist()
     Polarity_y_test = test['Polarity']
-    Polarity_y_test_pred = best_polarity_model.predict(Polarity_X_test)
+    with msg.loading("Predicting Polarity..."):
+        Polarity_y_test_pred = best_polarity_model.predict(Polarity_X_test)
+    msg.good("Polarity predictions done")
     
     #### Predict Type ######################################
 
     Type_X_test = test['embedding'].tolist()
     Type_y_test = test['Type']
-    Type_y_test_pred = best_type_model.predict(Type_X_test)
+    with msg.loading("Predicting Type..."):
+        Type_y_test_pred = best_type_model.predict(Type_X_test)
+    msg.good("Type predictions done")
 
     #### Predict Town ######################################
 
     Town_X_test = test['embedding'].tolist()
     Town_y_test = test['Town']
-    Town_y_test_pred = best_town_model.predict(Town_X_test)
+    with msg.loading("Predicting Town..."):
+        Town_y_test_pred = best_town_model.predict(Town_X_test)
+    msg.good("Town predictions done")
 
     #### Eval ##############################################
 
@@ -314,8 +335,8 @@ def eval_embeddings():
     #### Save Results ###############################
     # Guardar el reporte en formato Markdown
     report_md = f"""
-    # Reporte de Métricas
-    ## Métricas Calculadas
+    # Eval Report
+    ## Scores
     - **ResP_k (Polarity Score):** {ResP_k:.4f}
     - **ResMT_k (Town Score):** {ResMT_k:.4f}
     - **ResT_k (Type Score):** {ResT_k:.4f}
@@ -336,7 +357,7 @@ def eval_embeddings():
 @cli.command("inference")
 def inference():
     """
-    Inference the final ensamble.
+    Inference for the final submission.
     """
 
     #### Load Data #######################################
@@ -345,43 +366,42 @@ def inference():
     df['Title'] = df['Title'].astype(str)
     df['Review'] = df['Review'].astype(str)
 
-    ##### Predict Polarity ################################
-
-    Polarity_X_test = df['Title'] + df['Review']
-    
-    path = './models/tabularisai-distilbert/'
-    model = AutoModelForSequenceClassification.from_pretrained(path) 
-    tokenizer = AutoTokenizer.from_pretrained(path)
-
-    msg.info(f"Loaded model from {path}")
-
-    Polarity_y_test_pred = []
-
-    model = model.to(device)
-    Polarity_y_test_pred = predict_sentiment(Polarity_X_test.to_numpy(), model, tokenizer, batch_size=16)
-
-    msg.good("Polarity predictions done")
-
     #### Preprocess ###############################
 
+    msg.info("Preprocessing data...")
     nlp = spacy.load("es_dep_news_trf")
     df['Title_tokens'] = df['Title'].progress_apply(lambda x: TokenizeText(x, nlp))
     df['Review_tokens'] = df['Review'].progress_apply(lambda x: TokenizeText(x, nlp))
+    msg.good("Preprocessing done")
+
+    #### Load Models ###############################
+
+    with msg.loading("Loading models..."):
+        path = './models/tabularisai-distilbert/'
+        model = AutoModelForSequenceClassification.from_pretrained(path) 
+        tokenizer = AutoTokenizer.from_pretrained(path)
+
+        best_type_model = joblib.load('./models/baseline/type_gridmodel.pkl').best_estimator_
+        best_town_model = joblib.load('./models/baseline/magictown_gridmodel.pkl').best_estimator_
+
+    msg.good("Models loaded")
+
+    ##### Predict Polarity ################################
+
+    Polarity_X_test = df['Title'] + df['Review']
+
+    model = model.to(device)
+    Polarity_y_test_pred = predict_sentiment(Polarity_X_test.to_numpy(), model, tokenizer, batch_size=16)
+    msg.good("Polarity predictions done")
 
     #### Type #######################################
 
     Type_X_test = df['Title_tokens'] + df['Review_tokens']
-    
-    best_type_model = joblib.load('./models/baseline/type_gridmodel.pkl').best_estimator_
-    
     Type_y_test_pred = best_type_model.predict(Type_X_test)
 
     #### Town #######################################
 
-    Town_X_test = df['Region'].apply(lambda x: [str(x)]) + df['Title_tokens'] + df['Review_tokens']
-    
-    best_town_model = joblib.load('./models/baseline/magictown_gridmodel.pkl').best_estimator_
-    
+    Town_X_test = df['Title_tokens'] + df['Review_tokens']
     Town_y_test_pred = best_town_model.predict(Town_X_test)
 
     #### Save Predictions ###############################
