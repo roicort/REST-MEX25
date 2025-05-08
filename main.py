@@ -185,7 +185,7 @@ def eval_ensamble():
     Polarity_y_test = test['Polarity']
 
     model = model.to(device)
-    Polarity_y_test_pred = predict_sentiment(Polarity_X_test.to_numpy(), model, tokenizer, batch_size=16)
+    Polarity_y_test_pred = predict_sentiment(Polarity_X_test.to_numpy(), model, tokenizer, device.type, batch_size=16)
 
     msg.good("Polarity predictions done")
 
@@ -258,7 +258,7 @@ def eval_ensamble():
 
     """
     # Guardar el reporte en un archivo Markdown
-    with open("./results/eval_baseline.md", "w") as file:
+    with open("./results/eval_ensamble.md", "w") as file:
         file.write(report_md)
 
     #### END ###############################
@@ -354,8 +354,8 @@ def eval_embeddings():
         file.write(report_md)
     #### END ###############################
 
-@cli.command("inference")
-def inference():
+@cli.command("submission")
+def submission(TEAM='NLQue?',ID=0):
     """
     Inference for the final submission.
     """
@@ -407,15 +407,22 @@ def inference():
     #### Save Predictions ###############################
 
     submission_df = pd.DataFrame({
-        'ID': df.index,
+        'Task': 'rest-mex',
+        'IdentifierOfAnInstance': df.index,
+        'Polarity': Polarity_y_test_pred,
+        'Town': Town_y_test_pred,
+        'Type': Type_y_test_pred,
         'Title': df['Title'],
         'Review': df['Review'],
-        'Type': Type_y_test_pred,
-        'Town': Town_y_test_pred,
-        'Polarity': Polarity_y_test_pred
     })
 
     submission_df.to_csv('./results/submission.csv', index=False)
+
+    # Create txt file
+    with open(f'./results/{TEAM}_{ID}.txt', 'w') as f:
+        for index, row in submission_df.iterrows():
+            f.write(f"rest-mex\t{row['IdentifierOfAnInstance']}\t{row['Polarity']}\t{row['Town']}\t{row['Type']}\n")
+    msg.good("Submission file created")
 
     #### END ###############################
 
