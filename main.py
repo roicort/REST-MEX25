@@ -107,6 +107,10 @@ def eval_baseline():
 
     #### Save Results ###############################
 
+    type_report_md = pd.DataFrame(type_report_md)
+    town_report_md = pd.DataFrame(town_report_md)
+    polarity_report_md = pd.DataFrame(polarity_report_md)
+    
     # Guardar el reporte en formato Markdown
     report_md = f"""
     # Eval Report
@@ -228,6 +232,10 @@ def eval_ensamble():
 
     #### Save Results ###############################
 
+    type_report_md = pd.DataFrame(type_report_md)
+    town_report_md = pd.DataFrame(town_report_md)
+    polarity_report_md = pd.DataFrame(polarity_report_md)
+
     # Guardar el reporte en formato Markdown
     report_md = f"""
     # Eval Report
@@ -324,6 +332,11 @@ def eval_embeddings():
     msg.good(f"Sentiment(k): {Sentiment_k:.4f}")
 
     #### Save Results ###############################
+
+    type_report_md = pd.DataFrame(type_report_md)
+    town_report_md = pd.DataFrame(town_report_md)
+    polarity_report_md = pd.DataFrame(polarity_report_md)
+
     # Guardar el reporte en formato Markdown
     report_md = f"""
     # Eval Report
