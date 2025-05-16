@@ -84,21 +84,18 @@ def eval_baseline():
     #### Eval #############################################
 
     # Type
-    type_report_md = classification_report(Type_y_test, Type_y_test_pred, target_names=test['Type'].unique(), output_dict=True)
-    type_report_md = pd.DataFrame(type_report_md)
-    f1 = type_report_md[['Attractive', 'Hotel', 'Restaurant']].loc['f1-score'].to_dict()
+    type_report_md = classification_report(Type_y_test, Type_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in type_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResT_k = metrics.TypeScore(f1)
 
     # Town
-    town_report_md = classification_report(Town_y_test, Town_y_test_pred, target_names=test['Town'].unique(), output_dict=True)
-    town_report_md = pd.DataFrame(town_report_md)
-    f1 = town_report_md[Town_y_test.unique()].loc['f1-score'].to_dict()
+    town_report_md = classification_report(Town_y_test, Town_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in town_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResMT_k = metrics.TypeScore(f1)
 
     # Polarity
-    polarity_report_md = classification_report(Polarity_y_test, Polarity_y_test_pred, target_names=test['Polarity'].astype(int).unique(), output_dict=True)
-    polarity_report_md = pd.DataFrame(polarity_report_md)
-    f1 = polarity_report_md[Polarity_y_test.unique()].loc['f1-score'].to_dict()
+    polarity_report_md = classification_report(Polarity_y_test, Polarity_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in polarity_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResP_k = metrics.TypeScore(f1)
 
     msg.info(f"ResP_k: {ResP_k:.4f}")
@@ -208,21 +205,18 @@ def eval_ensamble():
     #### Eval #############################################
 
     # Type
-    type_report_md = classification_report(Type_y_test, Type_y_test_pred, target_names=test['Type'].unique(), output_dict=True)
-    type_report_md = pd.DataFrame(type_report_md)
-    f1 = type_report_md[['Attractive', 'Hotel', 'Restaurant']].loc['f1-score'].to_dict()
+    type_report_md = classification_report(Type_y_test, Type_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in type_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResT_k = metrics.TypeScore(f1)
 
     # Town
-    town_report_md = classification_report(Town_y_test, Town_y_test_pred, target_names=test['Town'].unique(), output_dict=True)
-    town_report_md = pd.DataFrame(town_report_md)
-    f1 = town_report_md[Town_y_test.unique()].loc['f1-score'].to_dict()
+    town_report_md = classification_report(Town_y_test, Town_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in town_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResMT_k = metrics.TypeScore(f1)
 
     # Polarity
-    polarity_report_md = classification_report(Polarity_y_test, Polarity_y_test_pred, target_names=test['Polarity'].astype(int).unique(), output_dict=True)
-    polarity_report_md = pd.DataFrame(polarity_report_md)
-    f1 = polarity_report_md[Polarity_y_test.unique()].loc['f1-score'].to_dict()
+    polarity_report_md = classification_report(Polarity_y_test, Polarity_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in polarity_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResP_k = metrics.TypeScore(f1)
 
     msg.info(f"ResP_k: {ResP_k:.4f}")
@@ -309,21 +303,18 @@ def eval_embeddings():
     #### Eval ##############################################
 
     # Type
-    type_report_md = classification_report(Type_y_test, Type_y_test_pred, target_names=test['Type'].unique(), output_dict=True)
-    type_report_md = pd.DataFrame(type_report_md)
-    f1 = type_report_md[['Attractive', 'Hotel', 'Restaurant']].loc['f1-score'].to_dict()
+    type_report_md = classification_report(Type_y_test, Type_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in type_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResT_k = metrics.TypeScore(f1)
 
     # Town
-    town_report_md = classification_report(Town_y_test, Town_y_test_pred, target_names=test['Town'].unique(), output_dict=True)
-    town_report_md = pd.DataFrame(town_report_md)
-    f1 = town_report_md[Town_y_test.unique()].loc['f1-score'].to_dict()
+    town_report_md = classification_report(Town_y_test, Town_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in town_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResMT_k = metrics.TypeScore(f1)
 
     # Polarity
-    polarity_report_md = classification_report(Polarity_y_test, Polarity_y_test_pred, target_names=test['Polarity'].astype(int).unique(), output_dict=True)
-    polarity_report_md = pd.DataFrame(polarity_report_md)
-    f1 = polarity_report_md[Polarity_y_test.unique()].loc['f1-score'].to_dict()
+    polarity_report_md = classification_report(Polarity_y_test, Polarity_y_test_pred, output_dict=True)
+    f1 = {k: v['f1-score'] for k, v in polarity_report_md.items() if isinstance(v, dict) and 'f1-score' in v}
     ResP_k = metrics.TypeScore(f1)
 
     msg.info(f"ResP_k: {ResP_k:.4f}")
