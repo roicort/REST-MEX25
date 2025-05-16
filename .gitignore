@@ -155,5 +155,5 @@ cython_debug/
 # Custom
 
 .DS_Store
-data/*.csv
-results/*.csv
+data/**/*.csv
+results/**/*.csv
