@@ -129,16 +129,6 @@ python main.py
 - The authors are not responsible for any damages or losses resulting from the use of the dataset.
 - If this is useful for you, please consider citing the paper:
 
-```bibtex
-@inproceedings{NLque?-restmex2025,
-  title={REST-MEX 2025: Sentiment Analysis and Classification of Mexican Tourist Reviews},
-  author={Rodrigo S. Cortez-Madrigal},
-  booktitle={CEUR Workshop Proceedings},
-  year={2025},
-  publisher={CEUR-WS.org}
-}
-```
-
 ---
 
 ## 🤝 Organized by
